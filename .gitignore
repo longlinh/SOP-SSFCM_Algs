@@ -13,3 +13,7 @@ dist/
 venv/
 .idea/
 .vscode/
+
+# Experiment outputs and downloaded scenes are regenerated, never committed.
+reproduce/results/
+*.mat
