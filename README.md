@@ -1,4 +1,4 @@
-# Sw-SSFCM — reference implementation
+# Sw-SSFCM: reference implementation
 
 Companion source code for the manuscript
 
@@ -26,8 +26,8 @@ S_d = mean_{i∈L,k} ‖x_i − μ_k‖²,  S_g = mean_{i∈L,k} −ln p̂_ik   
 
 π is computed once from the posterior and kept fixed, so both the membership and the
 centroid updates stay closed-form for every `m > 1` and the iteration reduces to
-classical FCM. One special case is part of the method: **Sr-SSFCM** (`r = 0`, `π = p`
-— the unpooled guided FCM), used to isolate the contribution of the spatial prior.
+classical FCM. One special case is part of the method: **Sr-SSFCM** (`r = 0`, `π = p`,
+that is, the unpooled guided FCM), used to isolate the contribution of the spatial prior.
 
 ## Install
 
@@ -87,7 +87,7 @@ term `−ln π` is an information quantity in nats), so it is not comparable acr
 The method therefore parameterises it by the **guidance share θ**: `α = θ/(1−θ)·S_d/S_g`,
 where `S_d` (mean squared distance of the labelled pixels to the labelled class means)
 and `S_g` (mean out-of-fold `−ln p̂`) are measured on the labelled set itself
-(`theta_scales`) — no ground truth, no per-scene grid. The share of the guidance term
+(`theta_scales`); no ground truth and no per-scene grid are needed. The share of the guidance term
 actually realised at convergence (`share_g`) tracks θ. The paper uses a single global
 **θ = 0.99** across all scenes (selected leave-one-scene-out; accuracy increases
 monotonically with θ and the loss of the global value against the per-scene optimum is
@@ -98,19 +98,19 @@ monotonically with θ and the loss of the global value against the per-scene opt
 
 | Function | Purpose |
 |---|---|
-| `train_softmax(X, y, lr, l2, epochs, batch_size, seed)` → `(W, b)` | multinomial logistic regression (cross-entropy + L2, mini-batch SGD) |
-| `posterior(X, W, b)` → `P` | Softmax posterior p |
-| `pooled_prior(P, H, W, r, omega, pool)` → `π` | log-opinion pool (`pool="log"`) or linear pool (`"arith"`, ablation) |
-| `guided_fcm(X, G, U0, m, eps, max_iter)` → `(U, V, n_iter)` | alternating minimisation of J_m with a fixed `G = −α ln π` (`G = 0` is plain FCM) |
-| `sw_ssfcm(X, y, H, W, n_clusters, theta, r, omega, m, eps, max_iter, pool, P, prior, ratio, seed, softmax_kw)` → dict | the full method |
-| `sr_ssfcm(X, y, ...)` → dict | `r = 0` special case (`π = p`) |
-| `open_set_prior(P, seen, n_clusters, H, W, r, omega, mode, X, y, logits)` → `π` | prior for classes without labels (`noop` / `energy` / `maha`) |
-| `theta_scales(X, y, folds, epochs, seed)` → `dict(S_d, S_g, ratio)` | measured scales of the two cost terms on the labelled pixels (out-of-fold Softmax) |
+| `train_softmax(X, y, lr, l2, epochs, batch_size, seed)` -> `(W, b)` | multinomial logistic regression (cross-entropy + L2, mini-batch SGD) |
+| `posterior(X, W, b)` -> `P` | Softmax posterior p |
+| `pooled_prior(P, H, W, r, omega, pool)` -> `π` | log-opinion pool (`pool="log"`) or linear pool (`"arith"`, ablation) |
+| `guided_fcm(X, G, U0, m, eps, max_iter)` -> `(U, V, n_iter)` | alternating minimisation of J_m with a fixed `G = −α ln π` (`G = 0` is plain FCM) |
+| `sw_ssfcm(X, y, H, W, n_clusters, theta, r, omega, m, eps, max_iter, pool, P, prior, ratio, seed, softmax_kw)` -> dict | the full method |
+| `sr_ssfcm(X, y, ...)` -> dict | `r = 0` special case (`π = p`) |
+| `open_set_prior(P, seen, n_clusters, H, W, r, omega, mode, X, y, logits)` -> `π` | prior for classes without labels (`noop` / `energy` / `maha`) |
+| `theta_scales(X, y, folds, epochs, seed)` -> `dict(S_d, S_g, ratio)` | measured scales of the two cost terms on the labelled pixels (out-of-fold Softmax) |
 | `alpha_from_theta(theta, ratio)`, `guidance_share(X, U, V, G, m)`, `objective(X, U, V, G, m)` | helpers |
 | `metrics.evaluate / accuracy / nmi / macro_f1 / xie_beni` | evaluation |
 
 Pixels are row-major: `X[i]` is the pixel at `(i // W, i % W)` and `labels.reshape(H, W)`
-is the label image. Labels are `0 … C-1`, `-1` = unlabelled.
+is the label image. Labels are `0 ... C-1`, `-1` = unlabelled.
 
 ## Computational requirements
 
@@ -118,7 +118,7 @@ Pure NumPy on the CPU, no GPU. Peak memory ≈ `8·N·(d + 6C)` bytes plus the c
 it is in memory. One Sw-SSFCM fit converges in 5–10 iterations; per fit the dominant
 costs are training the Softmax (mini-batch SGD on `C × budget` labelled samples) and the
 `N × C × d` distance matrix per iteration. For quick exploration pass
-`softmax_kw=dict(epochs=1000)` — the guided FCM itself is cheap and deterministic given π.
+`softmax_kw=dict(epochs=1000)`; the guided FCM itself is cheap and deterministic given π.
 
 ## Repository layout
 
@@ -128,7 +128,7 @@ costs are training the Softmax (mini-batch SGD on `C × budget` labelled samples
 ├── metrics.py       # ACC (Hungarian), NMI, macro-F1, Xie–Beni
 ├── demo.py          # self-contained synthetic demo, no data needed
 ├── docs/            # USER_GUIDE.md, TUTORIAL.md
-├── examples/        # run_on_hsi.py — run the algorithm on one hyperspectral scene
+├── examples/        # run_on_hsi.py: run the algorithm on one hyperspectral scene
 ├── reproduce/       # scripts and published CSV reproducing the paper's benchmark
 ├── requirements.txt, CITATION.cff, LICENSE
 ```
@@ -152,7 +152,7 @@ so the tables can be regenerated without re-running any experiment. See
 The hyperspectral scenes used in the paper are third-party benchmark datasets
 distributed by their original providers under their own terms and are **not**
 redistributed here. The algorithm takes any standardised `(N, d)` cube with a partial
-label vector, so it can be applied to those scenes — or any other hyperspectral image —
+label vector, so it can be applied to those scenes, or any other hyperspectral image,
 once the data is obtained from its source. The label-sampling protocol and the download
 pointers for the specific scenes of the paper are provided with the paper's data
 material.

@@ -45,7 +45,7 @@ def main(argv=None):
     print(f"[load] {scene.name}: {scene.height}x{scene.width}x{scene.n_bands}, C={scene.n_clusters}, "
           f"{int(scene.valid_mask.sum()):,} labelled pixels")
     rows = benchmark_budget.run_cell(scene, args.budget, args.seed, args.theta, args.epochs)
-    print(f"[eval] {args.budget} labels/class, seed {args.seed}, theta {args.theta} — ACC on unlabelled GT pixels")
+    print(f"[eval] {args.budget} labels/class, seed {args.seed}, theta {args.theta}: ACC on unlabelled GT pixels")
     for r in rows:
         print(f"  {r['algo']:<12} ACC={r['acc_unl'] * 100:6.2f}%  NMI={r['nmi_unl']:.4f}  "
               f"F1={r['f1_unl']:.4f}  XB={r['xb']:.2f}  iters={r['iters']}  {r['time_s']}s")

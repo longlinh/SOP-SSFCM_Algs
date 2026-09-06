@@ -12,7 +12,7 @@
 ## 0. Quick check
 
 ```bash
-python reproduce/smoke_test.py            # → SMOKE TEST PASSED
+python reproduce/smoke_test.py            # prints SMOKE TEST PASSED
 python reproduce/make_tables.py --csv reproduce/published/benchmark_budget.csv --results /tmp/published
 ```
 
@@ -48,7 +48,7 @@ blocked, fetch by hand, place under the paths in `datasets.py::SPECS` and run `-
 | Item | Value |
 |---|---|
 | features | per-band z-score over all pixels of the scene |
-| labelled set | `n ∈ {5,10,20,40,60}` pixels per class, stratified, capped at class size, `numpy.random.default_rng(seed)`, seeds 42 … 51 — identical draws to the paper |
+| labelled set | `n ∈ {5,10,20,40,60}` pixels per class, stratified, capped at class size, `numpy.random.default_rng(seed)`, seeds 42 ... 51, identical draws to the paper |
 | evaluation | ground-truth pixels **without** a label ("unl", primary) and all ground-truth pixels ("all"); ACC and macro-F1 after Hungarian matching, NMI; Xie–Beni on (U, V) |
 | Softmax | `lr = 0.01`, `λ = 1e-4`, `10 000` epochs, mini-batch 64, zero init, reshuffle every epoch |
 | pooling | log-opinion pool, `r = 2` (Sw-SSFCM r=2) or `r = 1`, `ω = 0.5`, clip `1e-6` |
@@ -74,9 +74,9 @@ Pure NumPy, CPU only; BLAS threads are used for the `N × C × d` products.
 |---|---|
 | RAM | ≈ `8·N·(d + 6C)` bytes + the cube during loading: 2 GB for the four smaller scenes, 8 GB comfortable for Houston 2013 (the largest scene) |
 | Disk | ≈ 700 MB for all scenes; results < 2 MB |
-| Time per cell (8-core desktop, NumPy/OpenBLAS, measured) | Indian Pines @10: 6 s for all five columns; Botswana (378 k px) @60: 30 s (Softmax 10 000 epochs 5 s, each guided-FCM fit 3–4 iterations, 5–7 s). Largest scene (Houston 2013): ≈ 1–2 min per cell |
+| Time per cell (8-core desktop, NumPy/OpenBLAS, measured) | Indian Pines @10: 6 s for all four columns; Botswana (378 k px) @60: 30 s (Softmax 10 000 epochs 5 s, each guided-FCM fit 3–4 iterations, 5–7 s). Largest scene (Houston 2013): ≈ 1–2 min per cell |
 
-The full protocol is 300 cells (6 × 5 × 10) — roughly 2–3 CPU-hours in total, dominated
+The full protocol is 300 cells (6 × 5 × 10), roughly 2–3 CPU-hours in total, dominated
 by the largest scenes (Houston 2013, Botswana, KSC). `--epochs 1000` and fewer `--seeds` shorten exploratory runs;
 the paper numbers need the defaults.
 
@@ -92,10 +92,10 @@ results of the paper: Sr-SSFCM = Softmax and Sw-SSFCM r=2 well above Softmax. Ve
 
 | Cell | Published (GPU) | This repository (NumPy) |
 |---|---|---|
-| Botswana, 60/class, seed 42 — Softmax / Sr-SSFCM / Sw-SSFCM r=1 / r=2 | 92.94 / 92.94 / 96.69 / 97.34 | 92.90 / 92.86 / 96.68 / 97.26 |
-| Indian Pines, 10/class, seed 42 — Softmax / Sr-SSFCM / Sw-SSFCM r=1 / r=2 | 49.31 / 49.31 / 56.40 / 57.88 | 49.24 / 49.28 / 56.35 / 57.81 |
+| Botswana, 60/class, seed 42: Softmax / Sr-SSFCM / Sw-SSFCM r=1 / r=2 | 92.94 / 92.94 / 96.69 / 97.34 | 92.90 / 92.86 / 96.68 / 97.26 |
+| Indian Pines, 10/class, seed 42: Softmax / Sr-SSFCM / Sw-SSFCM r=1 / r=2 | 49.31 / 49.31 / 56.40 / 57.88 | 49.24 / 49.28 / 56.35 / 57.81 |
 
-(`python examples/run_on_hsi.py --dataset botswana --data-root … --budget 60 --seed 42`
+(`python examples/run_on_hsi.py --dataset botswana --data-root ... --budget 60 --seed 42`
 and `--dataset indian_pines --budget 10 --seed 42` reproduce the right-hand column.)
 
 The spatial and semi-supervised FCM baselines of the paper (FCM, FCM_S1, FCM_S2,

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""End-to-end check on a synthetic scene — no download, under a minute on a laptop CPU.
+"""End-to-end check on a synthetic scene, no download, under a minute on a laptop CPU.
 
-Runs the exact code path of the paper experiment (scene → stratified labels → shared
-Softmax → Softmax / Sr-SSFCM / Sw-SSFCM r=1,2 → tables) and asserts what must
+Runs the exact code path of the paper experiment (scene -> stratified labels -> shared
+Softmax -> Softmax / Sr-SSFCM / Sw-SSFCM r=1,2 -> tables) and asserts what must
 hold on any spatially structured scene:
   1. a repeated fit with the same seed is bit-identical;
-  2. Sr-SSFCM reproduces the Softmax labels (π = p, τ = 0.99 ⇒ argmax u = argmax p);
+  2. Sr-SSFCM reproduces the Softmax labels (π = p, θ = 0.99, so argmax u = argmax p);
   3. Sw-SSFCM r=2 improves on Softmax.
 
     python reproduce/smoke_test.py [--keep]

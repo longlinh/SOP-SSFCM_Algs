@@ -1,7 +1,7 @@
 """Evaluation metrics.
 
 Cluster ids are defined up to a permutation, so ACC and macro-F1 are computed after the
-optimal cluster→class assignment (Hungarian algorithm).  NMI is permutation invariant.
+optimal cluster-to-class assignment (Hungarian algorithm).  NMI is permutation invariant.
 Xie–Beni uses the fuzzy partition:  XB = Σ_i Σ_k u_ik^m ‖x_i − v_k‖² / (N · min_{k≠l} ‖v_k − v_l‖²).
 """
 
@@ -51,7 +51,7 @@ def xie_beni(X, U, V, m=2.0):
 
 
 def centroids_from_u(X, U, m=2.0):
-    """v_k = Σ_i u_ik^m x_i / Σ_i u_ik^m — used to evaluate XB for a classifier whose
+    """v_k = Σ_i u_ik^m x_i / Σ_i u_ik^m; used to evaluate XB for a classifier whose
     posterior plays the role of U."""
     Um = np.asarray(U, dtype=float) ** m
     return (Um.T @ np.asarray(X, dtype=float)) / np.maximum(Um.sum(axis=0)[:, None], 1e-12)

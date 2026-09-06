@@ -1,7 +1,7 @@
-"""Sw-SSFCM — spatially pooled, Softmax-guided semi-supervised fuzzy c-means.
+"""Sw-SSFCM: spatially pooled, Softmax-guided semi-supervised fuzzy c-means.
 
 NumPy reference implementation of the algorithm proposed in the paper.  Notation:
-X ∈ R^{N×d} are the pixels of an H×W image in row-major order, y ∈ {-1,0,…,C-1}^N the
+X ∈ R^{N×d} are the pixels of an H×W image in row-major order, y ∈ {-1,0,...,C-1}^N the
 partial labels (-1 = unlabelled), U ∈ [0,1]^{N×C} the memberships, V ∈ R^{C×d} the
 centroids, N_i the (2r+1)²−1 neighbours of pixel i.
 
@@ -33,7 +33,7 @@ def softmax(Z):
 def train_softmax(X, y, lr=0.01, l2=1e-4, epochs=10000, batch_size=64, seed=42):
     """Multinomial logistic regression: cross-entropy + (λ/2)‖W‖², mini-batch SGD.
 
-    Returns (W, b), W ∈ R^{d×C}, b ∈ R^{1×C}; column k ↔ k-th smallest label in y.
+    Returns (W, b), W ∈ R^{d×C}, b ∈ R^{1×C}; column k corresponds to the k-th smallest label in y.
     """
     X = np.asarray(X, dtype=float)
     y = np.asarray(y, dtype=int)
@@ -60,7 +60,7 @@ def posterior(X, W, b):
 # --------------------------------------------------------------------------- pooling
 def neighbour_mean(A, H, W, r):
     """(1/|N_i|) Σ_{j∈N_i} a_j over the (2r+1)² window without its centre; image borders
-    average over the neighbours that exist.  A: (N, C) row-major → (N, C)."""
+    average over the neighbours that exist.  A: (N, C) row-major -> (N, C)."""
     C = A.shape[1]
     L = A.reshape(H, W, C)
     S = np.zeros_like(L)
@@ -105,7 +105,7 @@ def theta_scales(X, y, folds=5, epochs=1000, seed=42, eps=EPS_P, softmax_kw=None
     lab = np.where(y >= 0)[0]
     Xl, yl = X[lab], y[lab]
     classes = np.unique(yl)
-    yl = np.searchsorted(classes, yl)                       # → 0..C_seen−1
+    yl = np.searchsorted(classes, yl)                       # maps to 0..C_seen-1
     Cs = len(classes)
     mu = np.stack([Xl[yl == k].mean(axis=0) for k in range(Cs)])
     S_d = float(((Xl[:, None, :] - mu[None, :, :]) ** 2).sum()) / (len(lab) * Cs)
@@ -160,7 +160,7 @@ def sq_distances(X, V):
 def guided_fcm(X, G, U0, m=2.0, eps=1e-4, max_iter=10000):
     """Alternating minimisation of J_m with the fixed guidance matrix G = −α ln π (N×C).
 
-    U⁽⁰⁾ = U0;  for t = 1, 2, …:  V⁽ᵗ⁾ ← v_k(U⁽ᵗ⁻¹⁾),  U⁽ᵗ⁾ ← u_ik(V⁽ᵗ⁾);
+    U⁽⁰⁾ = U0;  for t = 1, 2, ...:  V⁽ᵗ⁾ ← v_k(U⁽ᵗ⁻¹⁾),  U⁽ᵗ⁾ ← u_ik(V⁽ᵗ⁾);
     stop when max_{i,k} |u_ik⁽ᵗ⁾ − u_ik⁽ᵗ⁻¹⁾| < eps.  Returns (U, V, n_iter).
     """
     X = np.asarray(X, dtype=float)
@@ -186,9 +186,9 @@ def sw_ssfcm(X, y, H, W, n_clusters=None, theta=THETA_DEFAULT, r=2, omega=0.5, m
     """Sw-SSFCM on an H×W image given as X (N, d) with partial labels y (N,).
 
     theta : guidance share θ ∈ [0,1); α = θ/(1−θ)·S_d/S_g with the scales measured on the
-            labelled pixels (`theta_scales`) — pass `ratio` to reuse a measured S_d/S_g.
-    P     : optional precomputed posterior (N, C) — lets several variants share one Softmax.
-    prior : optional precomputed π (N, n_clusters) — replaces the pooling step (open-set).
+            labelled pixels (`theta_scales`); pass `ratio` to reuse a measured S_d/S_g.
+    P     : optional precomputed posterior (N, C); lets several variants share one Softmax.
+    prior : optional precomputed π (N, n_clusters); replaces the pooling step (open-set).
     Returns dict(U, V, labels, pi, P, alpha, ratio, share_g, n_iter).
     """
     X = np.asarray(X, dtype=float)

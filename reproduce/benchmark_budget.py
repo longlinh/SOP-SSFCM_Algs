@@ -4,7 +4,7 @@
 Per cell one Softmax is trained on the labelled pixels and shared by the four columns
     Softmax        argmax_k p_ik
     Sr-SSFCM          Sw-SSFCM with r = 0  (π = p)
-    Sw-SSFCM r=1, Sw-SSFCM r=2                            (τ = 0.99, ω = 0.5, m = 2, ε = 1e-4)
+    Sw-SSFCM r=1, Sw-SSFCM r=2                            (θ = 0.99, ω = 0.5, m = 2, ε = 1e-4)
 Metrics: ACC / NMI / macro-F1 on the ground-truth pixels that carry no label ("unl", the
 primary numbers of the paper) and on all ground-truth pixels ("all"); Xie–Beni; time.
 The CSV layout is identical to the published run (reproduce/published/benchmark_budget.csv),
@@ -116,7 +116,7 @@ def main(argv=None):
                     print(f"  budget={budget:2d} seed={seed}  " +
                           "  ".join(f"{a}={acc[a]:.2f}" for a in ALGOS) +
                           f"  ({time.perf_counter() - t0:.0f}s)", flush=True)
-    print(f"done → {out}")
+    print(f"done: {out}")
 
 
 if __name__ == "__main__":

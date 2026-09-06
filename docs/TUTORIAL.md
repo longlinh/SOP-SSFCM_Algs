@@ -19,7 +19,7 @@ y = stratified_labels(y_true, n_per_class=10, seed=42)
 unl = (y_true >= 0) & (y < 0)
 ```
 
-## 1. First run — synthetic scene, no data needed
+## 1. First run: synthetic scene, no data needed
 
 ```bash
 python demo.py
@@ -101,7 +101,7 @@ res = sw_ssfcm(X, y_open, H, W, n_clusters=16, P=P, prior=pi, theta=0.99)
 ```
 
 Evaluate the recall of pixels of classes 3 and 7 after Hungarian matching on the
-unlabelled ground truth; the paper reports 19–28 % recall of the missing classes on
+unlabelled ground truth; the paper reports 19–27 % recall of the missing classes on
 KSC / Houston 2013 with `mode="maha"` at θ = 0.99, at a cost of a few points on the seen
-classes — a capability the classifier does not have (its recall of a missing class is 0
+classes, a capability the classifier does not have (its recall of a missing class is 0
 by construction).

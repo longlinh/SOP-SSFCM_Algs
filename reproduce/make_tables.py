@@ -48,7 +48,7 @@ def summarise(cells):
 
 
 def render(table, pairs):
-    lines = ["# Benchmark — unl-only ACC (%), mean ± std over seeds", ""]
+    lines = ["# Benchmark: unl-only ACC (%), mean ± std over seeds", ""]
     for budget in sorted(table):
         dss = table[budget]
         lines += [f"## {budget} labels per class", "",
@@ -63,10 +63,10 @@ def render(table, pairs):
                     cells.append(f"{m:.2f} ± {s:.2f}")
                     avg[a].append(m)
                 else:
-                    cells.append("—")
+                    cells.append("-")
             lines.append(f"| {ds} | " + " | ".join(cells) + " |")
         lines.append("| **average** | " + " | ".join(
-            f"**{np.mean(avg[a]):.2f}**" if avg[a] else "—" for a in ALGOS) + " |")
+            f"**{np.mean(avg[a]):.2f}**" if avg[a] else "-" for a in ALGOS) + " |")
         for ref, d in pairs.get(budget, {}).items():
             d = np.asarray(d)
             lines.append(f"- Sw-SSFCM r=2 − {ref}: mean {d.mean():+.2f} points, "
