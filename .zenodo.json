@@ -1,6 +1,6 @@
 {
   "title": "Sw-SSFCM_Algs: reference implementation of spatial-weighted semi-supervised fuzzy c-means for hyperspectral image analysis",
-  "description": "<p>NumPy reference implementation accompanying the manuscript <em>A novel approach to spatial-weighted semi-supervised fuzzy c-means clustering for hyperspectral image analysis</em> (Computers &amp; Geosciences). Implements Sw-SSFCM, a semi-supervised fuzzy c-means whose guidance term carries a frozen spatial prior obtained as the logarithmic opinion pool of Softmax posteriors over the pixel neighbourhood, together with the Sr-SSFCM control, the theta-rule for the guidance weight, the open-set prior for classes without labels, and the scripts reproducing the label-budget benchmark on six hyperspectral scenes.</p>",
+  "description": "<p>NumPy reference implementation accompanying the manuscript <em>A novel approach to spatial-weighted semi-supervised fuzzy c-means clustering for hyperspectral image analysis</em>. Implements Sw-SSFCM, a semi-supervised fuzzy c-means whose guidance term carries a frozen spatial prior obtained as the logarithmic opinion pool of Softmax posteriors over the pixel neighbourhood, together with the Sr-SSFCM control, the theta-rule for the guidance weight, the open-set prior for classes without labels, and the scripts reproducing the label-budget benchmark on six hyperspectral scenes.</p>",
   "upload_type": "software",
   "access_right": "open",
   "license": "MIT",

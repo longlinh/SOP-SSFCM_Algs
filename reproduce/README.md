@@ -52,7 +52,7 @@ blocked, fetch by hand, place under the paths in `datasets.py::SPECS` and run `-
 | evaluation | ground-truth pixels **without** a label ("unl", primary) and all ground-truth pixels ("all"); ACC and macro-F1 after Hungarian matching, NMI; Xie–Beni on (U, V) |
 | Softmax | `lr = 0.01`, `λ = 1e-4`, `10 000` epochs, mini-batch 64, zero init, reshuffle every epoch |
 | pooling | log-opinion pool, `r = 2` (Sw-SSFCM r=2) or `r = 1`, `ω = 0.5`, clip `1e-6` |
-| guided FCM | `θ = 0.99` (global, selected leave-one-scene-out; `α = θ/(1−θ)·S_d/S_g`, scales measured on the labelled pixels with 5-fold out-of-fold Softmax of 1 000 epochs, clip `1e-6`), `m = 2`, `ε = 1e-4` on `max|Δu|`, `U⁽⁰⁾ = π`, `max_iter = 10 000` |
+| guided FCM | `θ = 0.99` (global, selected leave-one-scene-out; `α = θ/(1−θ)·S_D/S_g`, scales measured on the labelled pixels with 5-fold out-of-fold Softmax of 1 000 epochs, clip `1e-6`), `m = 2`, `ε = 1e-4` on `max|Δu|`, `U⁽⁰⁾ = π`, `max_iter = 10 000` |
 | one Softmax per cell | shared by the four columns; reported time of a column = Softmax time + its own time |
 
 ```bash

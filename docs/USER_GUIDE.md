@@ -24,15 +24,15 @@ sw_ssfcm(X, y, H, W, n_clusters=None, theta=0.99, r=2, omega=0.5, m=2.0, eps=1e-
 ```
 
 Steps: (1) `train_softmax` on the labelled pixels, then `posterior` P; (2) `pooled_prior`
-gives π; (3) `theta_scales` on the labelled pixels gives `α = θ/(1−θ)·S_d/S_g`; (4) `guided_fcm` with
+gives π; (3) `theta_scales` on the labelled pixels gives `α = θ/(1−θ)·S_D/S_g`; (4) `guided_fcm` with
 `G = −α ln π`, `U⁽⁰⁾ = π`. Returns `dict(U, V, labels, pi, P, alpha, ratio, share_g, n_iter)`.
 
 | Parameter | Default | Notes |
 |---|---|---|
 | `H, W` | (required) | image size, `H*W == N`. Ignored when `r = 0`. |
 | `n_clusters` | number of distinct labels in `y` | set explicitly when some classes have no labels (open set) |
-| `theta` | 0.99 | guidance share θ ∈ [0,1): expected fraction of the guidance term in the cost matrix. `α = θ/(1−θ)·S_d/S_g`, with `S_d` = mean squared distance of labelled pixels to the labelled class means and `S_g` = mean out-of-fold `−ln p̂` (5 stratified folds), both averaged over all (pixel, class) pairs. Paper: one global θ (LOSO) on all scenes. |
-| `ratio` | `None` | pass a measured `S_d/S_g` (from `theta_scales`) to share it across variants / θ values |
+| `theta` | 0.99 | guidance share θ ∈ [0,1): expected fraction of the guidance term in the cost matrix. `α = θ/(1−θ)·S_D/S_g`, with `S_D` = mean squared distance of labelled pixels to the labelled class means and `S_g` = mean out-of-fold `−ln p̂` (5 stratified folds), both averaged over all (pixel, class) pairs. Paper: one global θ (LOSO) on all scenes. |
+| `ratio` | `None` | pass a measured `S_D/S_g` (from `theta_scales`) to share it across variants / θ values |
 | `r` | 2 | pooling radius, window `(2r+1)²` without centre; `0` gives Sr-SSFCM |
 | `omega` | 0.5 | self weight in the pool; `1` gives π = p |
 | `m`, `eps`, `max_iter` | 2.0, 1e-4, 10000 | fuzzifier; stop when `max |u⁽ᵗ⁾ − u⁽ᵗ⁻¹⁾| < eps` |
@@ -60,7 +60,7 @@ lower than the posterior treated as a partition) and varies with `m`, while
   the neighbours that exist.
 - `guided_fcm(X, G, U0, m=2.0, eps=1e-4, max_iter=10000) -> (U, V, n_iter)`: any fixed
   `(N, C)` offset `G ≥ 0` works; `G = 0` is plain FCM started from `U0`.
-- `theta_scales(X, y, folds=5, epochs=1000, seed=42) -> dict(S_d, S_g, ratio)`; `alpha_from_theta(theta, ratio)`;
+- `theta_scales(X, y, folds=5, epochs=1000, seed=42) -> dict(S_D, S_g, ratio)`; `alpha_from_theta(theta, ratio)`;
   `guidance_share(X, U, V, G, m)` (realised share Σu^m G / Σu^m(d²+G)); `objective(X, U, V, G, m)` (value of `J_m`).
 - `sr_ssfcm(X, y, n_clusters=None, **kw)` = `sw_ssfcm(..., r=0)`.
 - `open_set_prior(P, seen, n_clusters, H, W, r=2, omega=0.5, mode="maha", X=None, y=None, logits=None) -> pi`

@@ -5,7 +5,7 @@ Companion source code for the manuscript
 > **A novel approach to spatial-weighted semi-supervised fuzzy c-means clustering
 > for hyperspectral image analysis.**
 > Xuan Hoang Nguyen, Dinh Sinh Mai, Long Giang Nguyen.
-> Submitted to *Computers & Geosciences* (under review, 2026).
+> Manuscript under review (2026).
 
 A compact, NumPy-only implementation of the proposed algorithm, written to be read
 next to the equations of the paper: one module, plain functions, no class hierarchy.
@@ -20,8 +20,9 @@ prior* built from the Softmax posterior of the labelled pixels:
 p_ik    = softmax_k(Wᵀx_i + b)                                  Softmax posterior (labelled pixels only)
 ln π̃_ik = ω ln p_ik + (1−ω)/|N_i| Σ_{j∈N_i} ln p_jk              log-opinion pool over the (2r+1)² window
 J_m(U,V) = Σ_i Σ_k u_ik^m [ ‖x_i − v_k‖² − α ln π_ik ]          objective; closed-form U and V updates ∀ m>1
-α = θ/(1−θ) · S_d/S_g                                           guidance share θ ∈ [0,1); S_d, S_g = measured scales
-S_d = mean_{i∈L,k} ‖x_i − μ_k‖²,  S_g = mean_{i∈L,k} −ln p̂_ik      on the labelled pixels L (p̂ = out-of-fold posterior)
+α = θ/(1−θ) · S_D/S_g                                           guidance share θ ∈ [0,1); S_D, S_g = measured scales
+S_D = mean_{i∈L,k} ‖x_i − μ_k‖²,  S_g = mean_{i∈L,k} −ln p̂_ik      on the labelled pixels L (p̂ = out-of-fold posterior)
+J_m = S_D/(1−θ) · Σ_i Σ_k u_ik^m [ (1−θ) D_ik/S_D + θ s_ik/S_g ]   equivalent dimensionless form, D_ik = ‖x_i − v_k‖², s_ik = −ln π_ik
 ```
 
 π is computed once from the posterior and kept fixed, so both the membership and the
@@ -63,7 +64,7 @@ res = sw_ssfcm(X, y, H, W, n_clusters=C, theta=0.99, r=2, omega=0.5, seed=42)
 res["labels"]        # (N,)  hard labels = argmax_k u_ik
 res["U"], res["V"]   # (N,C) memberships, (C,d) centroids
 res["pi"], res["P"]  # (N,C) pooled prior π and Softmax posterior p
-res["alpha"], res["ratio"], res["share_g"], res["n_iter"]   # α, measured S_d/S_g, realised guidance share
+res["alpha"], res["ratio"], res["share_g"], res["n_iter"]   # α, measured S_D/S_g, realised guidance share
 
 gt = (y_true >= 0) & (y < 0)                       # ground-truth pixels without a label
 print(evaluate(y_true[gt], res["labels"][gt]))     # {'acc', 'nmi', 'f1'} after Hungarian matching
@@ -84,8 +85,8 @@ label vector. `sr_ssfcm(X, y, ...)` runs the `r = 0` control on the same inputs.
 
 `α` is a conversion factor with the units of a squared spectral distance (the guidance
 term `−ln π` is an information quantity in nats), so it is not comparable across scenes.
-The method therefore parameterises it by the **guidance share θ**: `α = θ/(1−θ)·S_d/S_g`,
-where `S_d` (mean squared distance of the labelled pixels to the labelled class means)
+The method therefore parameterises it by the **guidance share θ**: `α = θ/(1−θ)·S_D/S_g`,
+where `S_D` (mean squared distance of the labelled pixels to the labelled class means)
 and `S_g` (mean out-of-fold `−ln p̂`) are measured on the labelled set itself
 (`theta_scales`); no ground truth and no per-scene grid are needed. The share of the guidance term
 actually realised at convergence (`share_g`) tracks θ. The paper uses a single global
@@ -105,7 +106,7 @@ monotonically with θ and the loss of the global value against the per-scene opt
 | `sw_ssfcm(X, y, H, W, n_clusters, theta, r, omega, m, eps, max_iter, pool, P, prior, ratio, seed, softmax_kw)` -> dict | the full method |
 | `sr_ssfcm(X, y, ...)` -> dict | `r = 0` special case (`π = p`) |
 | `open_set_prior(P, seen, n_clusters, H, W, r, omega, mode, X, y, logits)` -> `π` | prior for classes without labels (`noop` / `energy` / `maha`) |
-| `theta_scales(X, y, folds, epochs, seed)` -> `dict(S_d, S_g, ratio)` | measured scales of the two cost terms on the labelled pixels (out-of-fold Softmax) |
+| `theta_scales(X, y, folds, epochs, seed)` -> `dict(S_D, S_g, ratio)` | measured scales of the two cost terms on the labelled pixels (out-of-fold Softmax) |
 | `alpha_from_theta(theta, ratio)`, `guidance_share(X, U, V, G, m)`, `objective(X, U, V, G, m)` | helpers |
 | `metrics.evaluate / accuracy / nmi / macro_f1 / xie_beni` | evaluation |
 
@@ -160,13 +161,12 @@ material.
 ## Citation
 
 ```bibtex
-@article{nguyen2026swssfcm,
+@unpublished{nguyen2026swssfcm,
   title   = {A novel approach to spatial-weighted semi-supervised fuzzy c-means
              clustering for hyperspectral image analysis},
   author  = {Nguyen, Xuan Hoang and Mai, Dinh Sinh and Nguyen, Long Giang},
-  journal = {Computers and Geosciences},
   year    = {2026},
-  note    = {Under review. DOI to be assigned on acceptance.}
+  note    = {Manuscript under review}
 }
 ```
 

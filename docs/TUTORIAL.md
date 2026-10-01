@@ -64,7 +64,7 @@ for r in (0, 1, 2):                                  # Sr-SSFCM, Sw-SSFCM r=1, r
 
 ```python
 from swssfcm import theta_scales
-ratio = theta_scales(X, y, seed=42)["ratio"]         # S_d/S_g measured once on the labelled pixels
+ratio = theta_scales(X, y, seed=42)["ratio"]         # S_D/S_g measured once on the labelled pixels
 for theta in (0.3, 0.5, 0.7, 0.8, 0.9, 0.95, 0.99):
     res = sw_ssfcm(X, y, H, W, n_clusters=C, theta=theta, P=P, ratio=ratio)
     print(theta, round(res["alpha"], 1), round(res["share_g"], 3),

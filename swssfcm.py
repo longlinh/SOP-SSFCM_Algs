@@ -8,10 +8,12 @@ centroids, N_i the (2r+1)²−1 neighbours of pixel i.
     p_ik   = exp(z_ik) / Σ_l exp(z_il),   z_i = Wᵀ x_i + b           (Softmax posterior)
     ln π̃_ik = ω ln p_ik + (1−ω)/|N_i| Σ_{j∈N_i} ln p_jk,  π_i = π̃_i / Σ_k π̃_ik   (log-opinion pool)
     J_m(U,V) = Σ_i Σ_k u_ik^m [ ‖x_i − v_k‖² − α ln π_ik ]                        (objective)
-    u_ik = d̂_ik^{−1/(m−1)} / Σ_l d̂_il^{−1/(m−1)},   d̂_ik = ‖x_i − v_k‖² − α ln π_ik
+    u_ik = a_ik^{−1/(m−1)} / Σ_l a_il^{−1/(m−1)},   a_ik = ‖x_i − v_k‖² − α ln π_ik
     v_k  = Σ_i u_ik^m x_i / Σ_i u_ik^m
-    α(θ) = θ/(1−θ) · S_d / S_g,   θ ∈ [0,1)                          (measured-scale rule)
-    S_d = mean_{i∈L,k} ‖x_i − μ_k‖²,  S_g = mean_{i∈L,k} −ln p̂_ik  (p̂ = out-of-fold posterior on L)
+    α(θ) = θ/(1−θ) · S_D / S_g,   θ ∈ [0,1)                          (measured-scale rule)
+    S_D = mean_{i∈L,k} ‖x_i − μ_k‖²,  S_g = mean_{i∈L,k} −ln p̂_ik  (p̂ = out-of-fold posterior on L)
+    J_m = S_D/(1−θ) · Σ_i Σ_k u_ik^m [ (1−θ) D_ik/S_D + θ s_ik/S_g ]   (dimensionless form,
+          D_ik = ‖x_i − v_k‖², s_ik = −ln π_ik: same minimisers; for fixed π and S_g, U is unchanged when x is scaled by c > 0)
 
 π is computed once from the Softmax posterior and kept fixed, so both updates are closed
 form for every m > 1.  Sr-SSFCM is the special case r = 0 (π = p).
@@ -97,9 +99,9 @@ def pooled_prior(P, H, W, r=2, omega=0.5, pool="log", eps=EPS_P):
 # --------------------------------------------------------------------------- θ rule
 def theta_scales(X, y, folds=5, epochs=1000, seed=42, eps=EPS_P, softmax_kw=None):
     """Measured scales of the two cost terms on the labelled pixels L (labels ≥ 0):
-    S_d = mean over (i∈L, k) of ‖x_i − μ_k‖² (μ_k = labelled class means) and S_g = mean over
+    S_D = mean over (i∈L, k) of ‖x_i − μ_k‖² (μ_k = labelled class means) and S_g = mean over
     (i∈L, k) of −ln p̂_ik with p̂ the OUT-OF-FOLD Softmax posterior (stratified `folds`,
-    reduced when a class has fewer samples; in-sample if < 2).  Returns dict(S_d, S_g, ratio).
+    reduced when a class has fewer samples; in-sample if < 2).  Returns dict(S_D, S_g, ratio).
     """
     X = np.asarray(X, dtype=float); y = np.asarray(y, dtype=int)
     lab = np.where(y >= 0)[0]
@@ -108,7 +110,7 @@ def theta_scales(X, y, folds=5, epochs=1000, seed=42, eps=EPS_P, softmax_kw=None
     yl = np.searchsorted(classes, yl)                       # maps to 0..C_seen-1
     Cs = len(classes)
     mu = np.stack([Xl[yl == k].mean(axis=0) for k in range(Cs)])
-    S_d = float(((Xl[:, None, :] - mu[None, :, :]) ** 2).sum()) / (len(lab) * Cs)
+    S_D = float(((Xl[:, None, :] - mu[None, :, :]) ** 2).sum()) / (len(lab) * Cs)
     kw = {'epochs': epochs, 'seed': seed, **(softmax_kw or {})}   # softmax_kw may override epochs
     n_splits = int(min(folds, np.bincount(yl, minlength=Cs).min()))
     if n_splits < 2:
@@ -126,11 +128,11 @@ def theta_scales(X, y, folds=5, epochs=1000, seed=42, eps=EPS_P, softmax_kw=None
             Wt, b = train_softmax(Xl[tr], yl[tr], **kw)
             P_oof[va] = posterior(Xl[va], Wt, b)
     S_g = float(-np.log(np.clip(P_oof, eps, 1.0)).sum()) / (len(lab) * Cs)
-    return dict(S_d=S_d, S_g=S_g, ratio=S_d / S_g)
+    return dict(S_D=S_D, S_g=S_g, ratio=S_D / S_g)
 
 
 def alpha_from_theta(theta, ratio):
-    """α = θ/(1−θ) · S_d/S_g  (ratio = S_d/S_g from `theta_scales`)."""
+    """α = θ/(1−θ) · S_D/S_g  (ratio = S_D/S_g from `theta_scales`)."""
     return theta / (1.0 - theta) * ratio
 
 
@@ -169,7 +171,7 @@ def guided_fcm(X, G, U0, m=2.0, eps=1e-4, max_iter=10000):
     for t in range(1, max_iter + 1):
         Um = U ** m
         V = (Um.T @ X) / np.maximum(Um.sum(axis=0)[:, None], EPS_D)       # v_k
-        A = np.maximum(sq_distances(X, V) + G, EPS_D) ** e                 # d̂_ik^{−1/(m−1)}
+        A = np.maximum(sq_distances(X, V) + G, EPS_D) ** e                 # a_ik^{−1/(m−1)}
         U_new = A / A.sum(axis=1, keepdims=True)                            # u_ik
         delta = np.abs(U_new - U).max()
         U = U_new
@@ -185,8 +187,8 @@ def sw_ssfcm(X, y, H, W, n_clusters=None, theta=THETA_DEFAULT, r=2, omega=0.5, m
              max_iter=10000, pool="log", P=None, prior=None, ratio=None, seed=42, softmax_kw=None):
     """Sw-SSFCM on an H×W image given as X (N, d) with partial labels y (N,).
 
-    theta : guidance share θ ∈ [0,1); α = θ/(1−θ)·S_d/S_g with the scales measured on the
-            labelled pixels (`theta_scales`); pass `ratio` to reuse a measured S_d/S_g.
+    theta : guidance share θ ∈ [0,1); α = θ/(1−θ)·S_D/S_g with the scales measured on the
+            labelled pixels (`theta_scales`); pass `ratio` to reuse a measured S_D/S_g.
     P     : optional precomputed posterior (N, C); lets several variants share one Softmax.
     prior : optional precomputed π (N, n_clusters); replaces the pooling step (open-set).
     Returns dict(U, V, labels, pi, P, alpha, ratio, share_g, n_iter).
