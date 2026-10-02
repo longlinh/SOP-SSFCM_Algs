@@ -11,7 +11,7 @@ authors:
     given-names: Dinh Sinh
   - family-names: Nguyen
     given-names: Long Giang
-repository-code: https://github.com/longlinh/SOP-SSFCM
+repository-code: https://github.com/longlinh/SOP-SSFCM_Algs
 abstract: >-
   NumPy reference implementation of SOP-SSFCM, a semi-supervised fuzzy c-means
   whose distance is augmented by a fixed spatial prior obtained as the
@@ -26,7 +26,7 @@ keywords:
   - classifier guidance
   - few labeled samples
 license: MIT
-version: 2.0.0
+version: 2.0.1
 date-released: '2026-10-02'
 preferred-citation:
   type: unpublished
