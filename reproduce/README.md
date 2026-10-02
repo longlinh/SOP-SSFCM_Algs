@@ -4,7 +4,7 @@
 |---|---|
 | `download_data.py` | fetch the four open scenes, print the steps for the two registration-only ones, verify SHA-256 |
 | `datasets.py` | scene registry (paths, MATLAB keys, shapes, checksums), loader, seeded stratified label sampler, synthetic scene |
-| `benchmark_budget.py` | the main experiment: 6 scenes × {5,10,20,40,60} labels/class × 10 seeds × {Softmax, Sr-SSFCM, Sw-SSFCM r=1, r=2} |
+| `benchmark_budget.py` | the main experiment: 6 scenes × {5,10,20,40,60} labels/class × 10 seeds × {Softmax, SOP-SSFCM (r = 0), SOP-SSFCM r=1, r=2} |
 | `make_tables.py` | mean ± std tables and paired differences from any `benchmark_budget.csv` |
 | `smoke_test.py` | end-to-end check on synthetic data (no download, < 1 min) |
 | `published/benchmark_budget.csv` | the run reported in the paper: 4 080 rows, all 16 methods (the FCM baselines come from the authors' library, see below) |
@@ -51,7 +51,7 @@ blocked, fetch by hand, place under the paths in `datasets.py::SPECS` and run `-
 | labelled set | `n ∈ {5,10,20,40,60}` pixels per class, stratified, capped at class size, `numpy.random.default_rng(seed)`, seeds 42 ... 51, identical draws to the paper |
 | evaluation | ground-truth pixels **without** a label ("unl", primary) and all ground-truth pixels ("all"); ACC and macro-F1 after Hungarian matching, NMI; Xie–Beni on (U, V) |
 | Softmax | `lr = 0.01`, `λ = 1e-4`, `10 000` epochs, mini-batch 64, zero init, reshuffle every epoch |
-| pooling | log-opinion pool, `r = 2` (Sw-SSFCM r=2) or `r = 1`, `ω = 0.5`, clip `1e-6` |
+| pooling | log-opinion pool, `r = 2` (SOP-SSFCM r=2) or `r = 1`, `ω = 0.1`, clip `1e-6` |
 | guided FCM | `θ = 0.99` (global, selected leave-one-scene-out; `α = θ/(1−θ)·S_D/S_g`, scales measured on the labelled pixels with 5-fold out-of-fold Softmax of 1 000 epochs, clip `1e-6`), `m = 2`, `ε = 1e-4` on `max|Δu|`, `U⁽⁰⁾ = π`, `max_iter = 10 000` |
 | one Softmax per cell | shared by the four columns; reported time of a column = Softmax time + its own time |
 
@@ -88,12 +88,12 @@ same equations. Differences come only from the Softmax SGD (shuffle order, preci
 given the same posterior, the pooled prior and the guided FCM are deterministic and
 match to rounding. Under the protocol above the repository reproduces the published
 ACC within a few tenths of a point, and reproduces exactly the two qualitative
-results of the paper: Sr-SSFCM = Softmax and Sw-SSFCM r=2 well above Softmax. Verified cells (unl-only ACC %):
+results of the paper: SOP-SSFCM (r = 0) = Softmax and SOP-SSFCM r=2 well above Softmax. Verified cells (unl-only ACC %):
 
 | Cell | Published (GPU) | This repository (NumPy) |
 |---|---|---|
-| Botswana, 60/class, seed 42: Softmax / Sr-SSFCM / Sw-SSFCM r=1 / r=2 | 92.94 / 92.94 / 96.69 / 97.34 | 92.90 / 92.86 / 96.68 / 97.26 |
-| Indian Pines, 10/class, seed 42: Softmax / Sr-SSFCM / Sw-SSFCM r=1 / r=2 | 49.31 / 49.31 / 56.40 / 57.88 | 49.24 / 49.28 / 56.35 / 57.81 |
+| Botswana, 60/class, seed 42: Softmax / SOP-SSFCM (r = 0) / SOP-SSFCM r=1 / r=2 | 92.94 / 92.94 / 97.18 / 97.13 | 92.90 / 92.86 / 97.22 / 97.05 |
+| Indian Pines, 10/class, seed 42: Softmax / SOP-SSFCM (r = 0) / SOP-SSFCM r=1 / r=2 | 49.31 / 49.36 / 60.48 / 63.56 | 49.24 / 49.26 / 60.38 / 63.48 |
 
 (`python examples/run_on_hsi.py --dataset botswana --data-root ... --budget 60 --seed 42`
 and `--dataset indian_pines --budget 10 --seed 42` reproduce the right-hand column.)
@@ -102,5 +102,5 @@ The spatial and semi-supervised FCM baselines of the paper (FCM, FCM_S1, FCM_S2,
 FLICM, KWFLICM, SSFCM, eSFCM, S3FCM, GS-SPFCM, and KFCM / SMUC / S2-PFCM at 60
 labels) are previously published algorithms by other authors run from the authors'
 library; their per-cell numbers are included in `published/benchmark_budget.csv` and
-their references are in the manuscript. `swssfcm.guided_fcm(X, G=0, U0)` is a plain FCM
+their references are in the manuscript. `sop_ssfcm.guided_fcm(X, G=0, U0)` is a plain FCM
 with the same code path if an unguided reference point is needed.

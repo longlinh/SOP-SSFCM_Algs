@@ -2,7 +2,7 @@
 """Benchmark tables from a benchmark_budget.csv (yours or the published one).
 
 For every budget: mean ± std of unl-only ACC (%) over seeds, per scene and column, the
-average over scenes, and the paired difference Sw-SSFCM r=2 − Softmax with
+average over scenes, and the paired difference SOP-SSFCM r=2 − Softmax with
 the number of (scene, seed) pairs won.  Writes <results>/tables.md and <results>/summary.csv.
 
 Usage
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 
-ALGOS = ["Softmax", "Sr-SSFCM", "Sw-SSFCM_r1", "Sw-SSFCM_r2"]
+ALGOS = ["Softmax", "SOP-SSFCM_r0", "SOP-SSFCM_r1", "SOP-SSFCM_r2"]
 METRIC = "acc_unl"
 
 
@@ -38,10 +38,10 @@ def summarise(cells):
     for (ds, budget, _seed), accs in cells.items():
         for algo, v in accs.items():
             by[budget][ds][algo].append(v)
-        if "Sw-SSFCM_r2" in accs:
+        if "SOP-SSFCM_r2" in accs:
             for ref in ("Softmax",):
                 if ref in accs:
-                    pairs[budget][ref].append(accs["Sw-SSFCM_r2"] - accs[ref])
+                    pairs[budget][ref].append(accs["SOP-SSFCM_r2"] - accs[ref])
     table = {b: {ds: {a: (float(np.mean(v)), float(np.std(v)), len(v)) for a, v in algos.items()}
                  for ds, algos in dss.items()} for b, dss in by.items()}
     return table, pairs
@@ -69,7 +69,7 @@ def render(table, pairs):
             f"**{np.mean(avg[a]):.2f}**" if avg[a] else "-" for a in ALGOS) + " |")
         for ref, d in pairs.get(budget, {}).items():
             d = np.asarray(d)
-            lines.append(f"- Sw-SSFCM r=2 − {ref}: mean {d.mean():+.2f} points, "
+            lines.append(f"- SOP-SSFCM r=2 − {ref}: mean {d.mean():+.2f} points, "
                          f"wins {(d > 0).sum()}/{len(d)} pairs, ties {(d == 0).sum()}, "
                          f"losses {(d < 0).sum()}")
         lines.append("")

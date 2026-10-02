@@ -1,12 +1,12 @@
 """Hyperspectral scene loading, label sampling and synthetic data generation.
 
 This module defines the six benchmark scenes used in the paper, a loader that
-turns each one into the flat ``(N, B)`` representation expected by Sr-SSFCM and
-Sw-SSFCM, and a fully synthetic scene generator so that the whole pipeline can
+turns each one into the flat ``(N, B)`` representation expected by
+SOP-SSFCM, and a fully synthetic scene generator so that the whole pipeline can
 be exercised without downloading any external data.
 
 Pixel ordering is row-major throughout: ``X[i]`` corresponds to image position
-``(i // width, i % width)``, which is what ``swssfcm.sw_ssfcm`` assumes.
+``(i // width, i % width)``, which is what ``sop_ssfcm.sop_ssfcm`` assumes.
 """
 from __future__ import annotations
 
@@ -308,7 +308,7 @@ def make_synthetic_scene(
 
     Class regions are produced by a Voronoi tessellation of random seed points,
     which yields the spatially contiguous patches that the spatial term of
-    Sw-SSFCM exploits. Every class gets a smooth, class-specific spectral
+    SOP-SSFCM exploits. Every class gets a smooth, class-specific spectral
     signature; pixels are that signature plus Gaussian noise. A random subset of
     pixels is marked as background (``y_true == -1``) to mimic the partial
     ground-truth coverage of real benchmark scenes.

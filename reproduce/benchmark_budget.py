@@ -3,8 +3,8 @@
 
 Per cell one Softmax is trained on the labelled pixels and shared by the four columns
     Softmax        argmax_k p_ik
-    Sr-SSFCM          Sw-SSFCM with r = 0  (π = p)
-    Sw-SSFCM r=1, Sw-SSFCM r=2                            (θ = 0.99, ω = 0.5, m = 2, ε = 1e-4)
+    SOP-SSFCM_r0          SOP-SSFCM with r = 0  (π = p)
+    SOP-SSFCM r=1, SOP-SSFCM r=2                            (θ = 0.99, ω = 0.1, m = 2, ε = 1e-4)
 Metrics: ACC / NMI / macro-F1 on the ground-truth pixels that carry no label ("unl", the
 primary numbers of the paper) and on all ground-truth pixels ("all"); Xie–Beni; time.
 The CSV layout is identical to the published run (reproduce/published/benchmark_budget.csv),
@@ -28,13 +28,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from metrics import evaluate, xie_beni, centroids_from_u                  # noqa: E402
 from reproduce.datasets import DATASET_KEYS, load_scene, stratified_labels  # noqa: E402
-from swssfcm import THETA_DEFAULT, posterior, sw_ssfcm, theta_scales, train_softmax  # noqa: E402
+from sop_ssfcm import THETA_DEFAULT, posterior, sop_ssfcm, theta_scales, train_softmax  # noqa: E402
 
 BUDGETS = [5, 10, 20, 40, 60]
 SEEDS = list(range(42, 52))
-THETA, OMEGA, M, EPS, MAX_ITER = THETA_DEFAULT, 0.5, 2.0, 1e-4, 10000
+THETA, OMEGA, M, EPS, MAX_ITER = THETA_DEFAULT, 0.1, 2.0, 1e-4, 10000
 SOFTMAX = dict(lr=0.01, l2=1e-4, epochs=10000, batch_size=64)
-ALGOS = ["Softmax", "Sr-SSFCM", "Sw-SSFCM_r1", "Sw-SSFCM_r2"]
+ALGOS = ["Softmax", "SOP-SSFCM_r0", "SOP-SSFCM_r1", "SOP-SSFCM_r2"]
 FIELDS = ["dataset", "budget", "seed", "algo", "theta", "alpha", "ratio", "share_g", "acc_unl",
           "nmi_unl", "f1_unl", "acc_all", "nmi_all", "xb", "iters", "time_s", "status", "note"]
 
@@ -67,9 +67,9 @@ def run_cell(scene, budget, seed, theta=THETA, epochs=SOFTMAX["epochs"]):
         return out
 
     rows = [row("Softmax", P.argmax(axis=1), P, None, "", t_soft)]
-    for algo, r in (("Sr-SSFCM", 0), ("Sw-SSFCM_r1", 1), ("Sw-SSFCM_r2", 2)):
+    for algo, r in (("SOP-SSFCM_r0", 0), ("SOP-SSFCM_r1", 1), ("SOP-SSFCM_r2", 2)):
         t1 = time.perf_counter()
-        res = sw_ssfcm(X, y_lab, H, W, n_clusters=scene.n_clusters, theta=theta, r=r,
+        res = sop_ssfcm(X, y_lab, H, W, n_clusters=scene.n_clusters, theta=theta, r=r,
                        omega=OMEGA, m=M, eps=EPS, max_iter=MAX_ITER, P=P, ratio=sc["ratio"], seed=seed)
         rows.append(row(algo, res["labels"], res["U"], res["V"], res["n_iter"],
                         t_soft + t_theta + time.perf_counter() - t1, theta, res["alpha"], res["share_g"]))

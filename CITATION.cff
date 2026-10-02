@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: 'Sw-SSFCM: reference implementation'
+title: 'SOP-SSFCM: spatial opinion-pooling semi-supervised fuzzy c-means (reference implementation)'
 message: >-
   If you use this software, please cite both the software itself and the
   accompanying paper listed under preferred-citation.
@@ -11,28 +11,28 @@ authors:
     given-names: Dinh Sinh
   - family-names: Nguyen
     given-names: Long Giang
-repository-code: https://github.com/longlinh/Sw-SSFCM_Algs
+repository-code: https://github.com/longlinh/SOP-SSFCM
 abstract: >-
-  NumPy reference implementation of Sw-SSFCM, a semi-supervised fuzzy c-means
-  whose distance is augmented by a frozen spatial prior obtained as the
-  log-opinion pool of the Softmax posterior over the pixel neighbourhood,
-  together with the Sr-SSFCM (r = 0) control and a self-contained synthetic
-  demonstration.
+  NumPy reference implementation of SOP-SSFCM, a semi-supervised fuzzy c-means
+  whose distance is augmented by a fixed spatial prior obtained as the
+  logarithmic opinion pool of classifier class probabilities over the pixel
+  neighbourhood, together with the unpooled control (r = 0), a self-contained
+  synthetic demonstration and the scripts that reproduce the benchmark.
 keywords:
   - fuzzy c-means
   - semi-supervised clustering
-  - hyperspectral imaging
-  - remote sensing
+  - hyperspectral image
   - opinion pooling
-  - spatial prior
+  - classifier guidance
+  - few labeled samples
 license: MIT
-version: 1.0.1
-date-released: '2026-10-01'
+version: 2.0.0
+date-released: '2026-10-02'
 preferred-citation:
   type: unpublished
   title: >-
-    A novel approach to spatial-weighted semi-supervised fuzzy c-means
-    clustering for hyperspectral image analysis
+    Semi-supervised fuzzy c-means with spatial opinion pooling of classifier
+    probabilities for hyperspectral images with few labeled samples
   authors:
     - family-names: Nguyen
       given-names: Xuan Hoang

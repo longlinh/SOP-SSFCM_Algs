@@ -27,7 +27,7 @@ python demo.py
 
 ```
 Softmax      ACC=0.7424
-Sw-SSFCM r=2 ACC=0.9247  (alpha=1539.9, 3 iterations)
+SOP-SSFCM r=2 ACC=0.9549  (alpha=1539.9, 3 iterations)
 label image: (64, 64) memberships U: (4096, 6) centroids V: (6, 30)
 ```
 
@@ -37,10 +37,10 @@ the gain over the raw posterior and the guided clustering adds a fuzzy partition
 ## 2. One label budget on your own cube
 
 ```python
-from swssfcm import sw_ssfcm
+from sop_ssfcm import sop_ssfcm
 from metrics import evaluate
 
-res = sw_ssfcm(X, y, H, W, n_clusters=C, theta=0.99, r=2, seed=42)
+res = sop_ssfcm(X, y, H, W, n_clusters=C, theta=0.99, r=2, seed=42)
 print(evaluate(y_true[unl], res["labels"][unl]))     # {'acc', 'nmi', 'f1'}
 ```
 
@@ -50,23 +50,23 @@ Training the Softmax is the expensive step; the pooled prior and the clustering 
 cheap, so compare variants on the same posterior by passing `P`:
 
 ```python
-from swssfcm import train_softmax, posterior, sw_ssfcm
+from sop_ssfcm import train_softmax, posterior, sop_ssfcm
 lab = y >= 0
 W_, b = train_softmax(X[lab], y[lab], seed=42)
 P = posterior(X, W_, b)
 softmax_labels = P.argmax(1)
-for r in (0, 1, 2):                                  # Sr-SSFCM, Sw-SSFCM r=1, r=2
-    res = sw_ssfcm(X, y, H, W, n_clusters=C, r=r, P=P)
+for r in (0, 1, 2):                                  # SOP-SSFCM (r = 0), SOP-SSFCM r=1, r=2
+    res = sop_ssfcm(X, y, H, W, n_clusters=C, r=r, P=P)
     print(r, evaluate(y_true[unl], res["labels"][unl])["acc"], res["n_iter"])
 ```
 
 ## 4. θ, ω and the pooling operator
 
 ```python
-from swssfcm import theta_scales
+from sop_ssfcm import theta_scales
 ratio = theta_scales(X, y, seed=42)["ratio"]         # S_D/S_g measured once on the labelled pixels
 for theta in (0.3, 0.5, 0.7, 0.8, 0.9, 0.95, 0.99):
-    res = sw_ssfcm(X, y, H, W, n_clusters=C, theta=theta, P=P, ratio=ratio)
+    res = sop_ssfcm(X, y, H, W, n_clusters=C, theta=theta, P=P, ratio=ratio)
     print(theta, round(res["alpha"], 1), round(res["share_g"], 3),
           evaluate(y_true[unl], res["labels"][unl])["acc"], res["n_iter"])
 ```
@@ -76,32 +76,7 @@ increases monotonically with θ on every scene and the iteration count drops; at
 to 1 the labels follow the argmax of the pooled prior `π`. The pooling operator and ω:
 
 ```python
-sw_ssfcm(..., pool="arith")          # linear opinion pool (≈ −1.2 points on average)
-sw_ssfcm(..., omega=0.25)            # more weight on the neighbourhood (≈ +1.6 points on average)
-sw_ssfcm(..., omega=1.0)             # no neighbourhood = Sr-SSFCM
+sop_ssfcm(..., pool="arith")          # linear pool: about +1.1 points of accuracy, but U no longer ranks reliability better than π
+sop_ssfcm(..., omega=0.5)             # less weight on the neighbourhood than the default ω = 0.1
+sop_ssfcm(..., omega=1.0)             # no neighbourhood, same as r = 0 (π = p)
 ```
-
-## 5. Classes without any label (open set)
-
-Suppose classes `{3, 7}` of a 16-class scene have no labelled pixel. The Softmax only
-knows the other 14 classes; `open_set_prior` builds a 16-column prior whose two unseen
-columns carry a novelty score, and the clustering can then create the two missing
-clusters:
-
-```python
-import numpy as np
-from swssfcm import train_softmax, posterior, open_set_prior, sw_ssfcm
-y_open = y.copy(); y_open[np.isin(y, [3, 7])] = -1          # hide the two classes
-seen = np.unique(y_open[y_open >= 0])                        # 14 classes
-lab = y_open >= 0
-W_, b = train_softmax(X[lab], y_open[lab], seed=42)
-P = posterior(X, W_, b)                                      # (N, 14), columns ordered as `seen`
-pi = open_set_prior(P, seen, n_clusters=16, H=H, W=W, mode="maha", X=X, y=y_open)
-res = sw_ssfcm(X, y_open, H, W, n_clusters=16, P=P, prior=pi, theta=0.99)
-```
-
-Evaluate the recall of pixels of classes 3 and 7 after Hungarian matching on the
-unlabelled ground truth; the paper reports 19–27 % recall of the missing classes on
-KSC / Houston 2013 with `mode="maha"` at θ = 0.99, at a cost of a few points on the seen
-classes, a capability the classifier does not have (its recall of a missing class is 0
-by construction).

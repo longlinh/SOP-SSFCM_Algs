@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Sw-SSFCM on one benchmark scene (or your own cube) and print the four columns.
+"""Run SOP-SSFCM on one benchmark scene (or your own cube) and print the four columns.
 
     python examples/run_on_hsi.py --dataset botswana --data-root ~/data/HSI
     python examples/run_on_hsi.py --dataset botswana --data-root ~/data/HSI --budget 60 --seed 42 --epochs 10000

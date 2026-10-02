@@ -3,10 +3,10 @@
 
 No download and no data files: a small scene with spatially contiguous class
 regions is generated in-process, a few pixels per class are revealed as labels,
-and Sw-SSFCM is run on it. Expected output (deterministic, seed 42):
+and SOP-SSFCM is run on it. Expected output (deterministic, seed 42):
 
     Softmax      ACC=0.74xx
-    Sw-SSFCM r=2 ACC=0.92xx  (alpha=..., 3 iterations)
+    SOP-SSFCM r=2 ACC=0.95xx  (alpha=..., 3 iterations)
 
     python demo.py
 """
@@ -19,7 +19,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from metrics import evaluate                       # noqa: E402
-from swssfcm import sw_ssfcm                        # noqa: E402
+from sop_ssfcm import sop_ssfcm                        # noqa: E402
 
 
 def standardize(X):
@@ -78,13 +78,13 @@ def main():
     y_lab = stratified_labels(y_true, n_per_class=10, seed=42)
     gt = (y_true >= 0) & (y_lab < 0)                    # ground-truth pixels without a label
 
-    res = sw_ssfcm(X, y_lab, H, W, n_clusters=C, theta=0.99, r=2, seed=42,
+    res = sop_ssfcm(X, y_lab, H, W, n_clusters=C, theta=0.99, r=2, seed=42,
                    softmax_kw=dict(epochs=300))         # short Softmax keeps the demo < 5 s
     softmax_acc = evaluate(y_true[gt], res["P"].argmax(1)[gt])["acc"]
     sw_acc = evaluate(y_true[gt], res["labels"][gt])["acc"]
 
     print(f"Softmax      ACC={softmax_acc:.4f}")
-    print(f"Sw-SSFCM r=2 ACC={sw_acc:.4f}  "
+    print(f"SOP-SSFCM r=2 ACC={sw_acc:.4f}  "
           f"(alpha={res['alpha']:.1f}, {res['n_iter']} iterations)")
     print("label image:", res["labels"].reshape(H, W).shape,
           "memberships U:", res["U"].shape, "centroids V:", res["V"].shape)

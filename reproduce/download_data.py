@@ -70,7 +70,7 @@ MANUAL_STEPS = {
     ),
 }
 
-USER_AGENT = "Mozilla/5.0 (compatible; Sw-SSFCM-reproduction/1.0)"
+USER_AGENT = "Mozilla/5.0 (compatible; SOP-SSFCM-reproduction/1.0)"
 
 
 def download(url: str, destination: Path) -> None:

@@ -1,4 +1,4 @@
-"""Sw-SSFCM: spatially pooled, Softmax-guided semi-supervised fuzzy c-means.
+"""SOP-SSFCM: spatial opinion-pooling semi-supervised fuzzy c-means.
 
 NumPy reference implementation of the algorithm proposed in the paper.  Notation:
 X ∈ R^{N×d} are the pixels of an H×W image in row-major order, y ∈ {-1,0,...,C-1}^N the
@@ -16,7 +16,7 @@ centroids, N_i the (2r+1)²−1 neighbours of pixel i.
           D_ik = ‖x_i − v_k‖², s_ik = −ln π_ik: same minimisers; for fixed π and S_g, U is unchanged when x is scaled by c > 0)
 
 π is computed once from the Softmax posterior and kept fixed, so both updates are closed
-form for every m > 1.  Sr-SSFCM is the special case r = 0 (π = p).
+form for every m > 1.  The case r = 0 (π = p) uses the unpooled class probabilities.
 """
 
 import numpy as np
@@ -77,7 +77,7 @@ def neighbour_mean(A, H, W, r):
     return (S / np.maximum(n, 1)).reshape(-1, C)
 
 
-def pooled_prior(P, H, W, r=2, omega=0.5, pool="log", eps=EPS_P):
+def pooled_prior(P, H, W, r=2, omega=0.1, pool="log", eps=EPS_P):
     """π (N, C) from the posterior P (N, C).  pool="log": geometric (log-opinion) pool;
     pool="arith": linear opinion pool (ablation only).  r ≤ 0 or ω ≥ 1 gives π = p."""
     P = np.asarray(P, dtype=float)
@@ -183,14 +183,14 @@ def guided_fcm(X, G, U0, m=2.0, eps=1e-4, max_iter=10000):
 THETA_DEFAULT = 0.99   # global guidance share selected by leave-one-scene-out in the paper
 
 
-def sw_ssfcm(X, y, H, W, n_clusters=None, theta=THETA_DEFAULT, r=2, omega=0.5, m=2.0, eps=1e-4,
+def sop_ssfcm(X, y, H, W, n_clusters=None, theta=THETA_DEFAULT, r=2, omega=0.1, m=2.0, eps=1e-4,
              max_iter=10000, pool="log", P=None, prior=None, ratio=None, seed=42, softmax_kw=None):
-    """Sw-SSFCM on an H×W image given as X (N, d) with partial labels y (N,).
+    """SOP-SSFCM on an H×W image given as X (N, d) with partial labels y (N,).
 
     theta : guidance share θ ∈ [0,1); α = θ/(1−θ)·S_D/S_g with the scales measured on the
             labelled pixels (`theta_scales`); pass `ratio` to reuse a measured S_D/S_g.
     P     : optional precomputed posterior (N, C); lets several variants share one Softmax.
-    prior : optional precomputed π (N, n_clusters); replaces the pooling step (open-set).
+    prior : optional precomputed π (N, n_clusters); replaces the pooling step.
     Returns dict(U, V, labels, pi, P, alpha, ratio, share_g, n_iter).
     """
     X = np.asarray(X, dtype=float)
@@ -213,42 +213,3 @@ def sw_ssfcm(X, y, H, W, n_clusters=None, theta=THETA_DEFAULT, r=2, omega=0.5, m
     U, V, t = guided_fcm(X, G, pi, m, eps, max_iter)
     return dict(U=U, V=V, labels=U.argmax(axis=1), pi=pi, P=P, alpha=alpha, ratio=ratio,
                 share_g=guidance_share(X, U, V, G, m), n_iter=t)
-
-
-def sr_ssfcm(X, y, n_clusters=None, **kw):
-    """Sr-SSFCM = Sw-SSFCM with r = 0 (π = p): no spatial pooling."""
-    return sw_ssfcm(X, y, H=None, W=None, n_clusters=n_clusters, r=0, **kw)
-
-
-# --------------------------------------------------------------------------- open set
-def _rank01(v):
-    ranks = v.argsort().argsort().astype(float)
-    return np.clip((ranks + 1.0) / len(v), EPS_P, 1.0)
-
-
-def open_set_prior(P, seen, n_clusters, H, W, r=2, omega=0.5, mode="maha",
-                   X=None, y=None, logits=None):
-    """π for partial class coverage: the Softmax knows only the classes `seen` (columns of
-    P in that order).  Seen columns ← pooled prior of P; each unseen column ← a rank
-    normalised novelty score in (0,1]:
-      mode="noop"   : 1                     (purely geometric competition, −ln π = 0)
-      mode="energy" : rank(−log Σ_k e^{z_ik})                          (needs logits)
-      mode="maha"   : rank(min_{k∈seen} Σ_j (x_ij − μ_kj)² / σ²_kj)   (needs X, y)
-    """
-    pi = np.ones((len(P), n_clusters))
-    pi[:, seen] = pooled_prior(P, H, W, r, omega)
-    unseen = np.setdiff1d(np.arange(n_clusters), seen)
-    if mode == "energy":
-        zmax = logits.max(axis=1, keepdims=True)
-        score = -(zmax[:, 0] + np.log(np.exp(logits - zmax).sum(axis=1)))
-    elif mode == "maha":
-        score = np.full(len(X), np.inf)
-        for k in seen:
-            xs = X[y == k]
-            var = xs.var(axis=0) + 1e-3 if len(xs) > 1 else np.ones(X.shape[1])
-            score = np.minimum(score, (((X - xs.mean(axis=0)) ** 2) / var).sum(axis=1))
-    elif mode != "noop":
-        raise ValueError("mode must be 'noop', 'energy' or 'maha'")
-    if mode != "noop":
-        pi[:, unseen] = _rank01(score)[:, None]
-    return pi
