@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmark tables from a benchmark_budget.csv (yours or the published one).
+"""Benchmark tables from a benchmark_budget.csv written by benchmark_budget.py.
 
 For every budget: mean ± std of unl-only ACC (%) over seeds, per scene and column, the
 average over scenes, and the paired difference SOP-SSFCM r=2 − Softmax with
@@ -7,7 +7,7 @@ the number of (scene, seed) pairs won.  Writes <results>/tables.md and <results>
 
 Usage
     python reproduce/make_tables.py --results reproduce/results
-    python reproduce/make_tables.py --csv reproduce/published/benchmark_budget.csv --results /tmp/tables
+    python reproduce/make_tables.py --csv /path/to/benchmark_budget.csv --results /tmp/tables
 """
 
 import argparse

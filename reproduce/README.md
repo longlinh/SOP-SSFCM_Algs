@@ -7,17 +7,12 @@
 | `benchmark_budget.py` | the main experiment: 6 scenes × {5,10,20,40,60} labels/class × 10 seeds × {Softmax, SOP-SSFCM (r = 0), SOP-SSFCM r=1, r=2} |
 | `make_tables.py` | mean ± std tables and paired differences from any `benchmark_budget.csv` |
 | `smoke_test.py` | end-to-end check on synthetic data (no download, < 1 min) |
-| `published/benchmark_budget.csv` | the run reported in the paper for the four columns this repository computes (Softmax, SOP-SSFCM with r = 0, 1, 2): 1 200 rows |
 
 ## 0. Quick check
 
 ```bash
 python reproduce/smoke_test.py            # prints SMOKE TEST PASSED
-python reproduce/make_tables.py --csv reproduce/published/benchmark_budget.csv --results /tmp/published
 ```
-
-The second command regenerates, without running anything, the accuracy of Softmax and
-SOP-SSFCM reported in the paper from the published CSV.
 
 ## 1. Data
 
@@ -61,8 +56,8 @@ python reproduce/benchmark_budget.py --data-root ~/data/HSI --datasets botswana 
 python reproduce/make_tables.py --results reproduce/results
 ```
 
-Output `reproduce/results/benchmark_budget.csv` has the same columns as the
-published file (`dataset, budget, seed, algo, theta, alpha, ratio, share_g, acc_unl, nmi_unl,
+Output `reproduce/results/benchmark_budget.csv` has the columns
+(`dataset, budget, seed, algo, theta, alpha, ratio, share_g, acc_unl, nmi_unl,
 f1_unl, acc_all, nmi_all, xb, iters, time_s, status, note`); `make_tables.py` writes `tables.md` and
 `summary.csv`.
 

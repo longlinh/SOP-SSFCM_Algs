@@ -7,8 +7,7 @@ Per cell one Softmax is trained on the labelled pixels and shared by the four co
     SOP-SSFCM r=1, SOP-SSFCM r=2                            (θ = 0.99, ω = 0.1, m = 2, ε = 1e-4)
 Metrics: ACC / NMI / macro-F1 on the ground-truth pixels that carry no label ("unl", the
 primary numbers of the paper) and on all ground-truth pixels ("all"); Xie–Beni; time.
-The CSV layout is identical to the published run (reproduce/published/benchmark_budget.csv),
-so make_tables.py works on either.
+make_tables.py turns the CSV into the accuracy tables.
 
 Usage
     python reproduce/benchmark_budget.py --data-root ~/data/HSI
