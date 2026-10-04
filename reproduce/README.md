@@ -7,7 +7,7 @@
 | `benchmark_budget.py` | the main experiment: 6 scenes × {5,10,20,40,60} labels/class × 10 seeds × {Softmax, SOP-SSFCM (r = 0), SOP-SSFCM r=1, r=2} |
 | `make_tables.py` | mean ± std tables and paired differences from any `benchmark_budget.csv` |
 | `smoke_test.py` | end-to-end check on synthetic data (no download, < 1 min) |
-| `published/benchmark_budget.csv` | the run reported in the paper: 4 080 rows, all 16 methods (the FCM baselines come from the authors' library, see below) |
+| `published/benchmark_budget.csv` | the run reported in the paper for the four columns this repository computes (Softmax, SOP-SSFCM with r = 0, 1, 2): 1 200 rows |
 
 ## 0. Quick check
 
@@ -16,8 +16,8 @@ python reproduce/smoke_test.py            # prints SMOKE TEST PASSED
 python reproduce/make_tables.py --csv reproduce/published/benchmark_budget.csv --results /tmp/published
 ```
 
-The second command regenerates the accuracy tables of the paper from the published
-CSV without running anything (the CSV contains every baseline column).
+The second command regenerates, without running anything, the accuracy of Softmax and
+SOP-SSFCM reported in the paper from the published CSV.
 
 ## 1. Data
 
@@ -98,9 +98,7 @@ results of the paper: SOP-SSFCM (r = 0) = Softmax and SOP-SSFCM r=2 well above S
 (`python examples/run_on_hsi.py --dataset botswana --data-root ... --budget 60 --seed 42`
 and `--dataset indian_pines --budget 10 --seed 42` reproduce the right-hand column.)
 
-The spatial and semi-supervised FCM baselines of the paper (FCM, FCM_S1, FCM_S2,
-FLICM, KWFLICM, SSFCM, eSFCM, S3FCM, GS-SPFCM, and KFCM / SMUC / S2-PFCM at 60
-labels) are previously published algorithms by other authors run from the authors'
-library; their per-cell numbers are included in `published/benchmark_budget.csv` and
-their references are in the manuscript. `sop_ssfcm.guided_fcm(X, G=0, U0)` is a plain FCM
+The comparison methods of the paper are previously published algorithms by other
+authors; their results and references are in the manuscript and they are not part of
+this repository. `sop_ssfcm.guided_fcm(X, G=0, U0)` is a plain FCM
 with the same code path if an unguided reference point is needed.

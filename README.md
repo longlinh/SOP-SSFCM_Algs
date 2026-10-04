@@ -141,8 +141,9 @@ python reproduce/download_data.py --data-root ~/data/HSI         # four open sce
 python reproduce/benchmark_budget.py --data-root ~/data/HSI      # full benchmark (6 scenes x 5 budgets x 10 seeds)
 ```
 
-`reproduce/published/benchmark_budget.csv` is the exact run reported in the manuscript,
-so the tables can be regenerated without re-running any experiment. See
+`reproduce/published/benchmark_budget.csv` holds the run reported in the manuscript for
+Softmax and SOP-SSFCM (r = 0, 1, 2), so their accuracy tables can be regenerated
+without re-running any experiment. See
 [reproduce/README.md](reproduce/README.md) for the step-by-step protocol and
 [examples/run_on_hsi.py](examples/run_on_hsi.py) for a single-scene run.
 
